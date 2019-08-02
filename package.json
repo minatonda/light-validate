@@ -1,0 +1,51 @@
+{
+  "name": "light-validate",
+  "version": "1.0.1",
+  "description": "Validate data based on isolated rules",
+  "main": "index.ts",
+  "scripts": {
+    "build": "npm run build:clean && npm run build:ts:dist && npm run build:copy",
+    "build:ts:dev": "tsc --project ./.build/typescript/tsconfig.dev.json",
+    "build:ts:dist": "tsc --project ./.build/typescript/tsconfig.build.json",
+    "build:clean": "rimraf dist",
+    "build:copy": "copyfiles --flat package.json readme.md dist",
+    "test": "jest --config=./.build/jest/jest.config.js",
+    "test:coverage": "jest --config=./.build/jest/jest.config.js --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/minatonda/light-validate.git"
+  },
+  "homepage": "https://github.com/minatonda/light-validate",
+  "keywords": [
+    "light",
+    "validate",
+    "decorator",
+    "mapping",
+    "rule",
+    "agnostic",
+    "annotation",
+    "functional",
+    "reusability",
+    "facility",
+    "pure"
+  ],
+  "author": "minatonda",
+  "license": "ISC",
+  "dependencies": {
+    "reflect-metadata": "^0.1.13"
+  },
+  "peerDependencies": {
+    "reflect-metadata": "^0.1.13"
+  },
+  "devDependencies": {
+    "copyfiles": "2.1.0",
+    "@types/jest": "24.0.11",
+    "@types/node": "11.13.7",
+    "@types/reflect-metadata": "0.1.0",
+    "jest": "24.7.1",
+    "rimraf": "2.6.3",
+    "ts-jest": "24.0.2",
+    "typescript": "3.4.4"
+  }
+}
