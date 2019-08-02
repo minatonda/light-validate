@@ -1,4 +1,4 @@
-# @light/validate
+# light-validate
 
 
 This library is intended to facilitate the isolation of validation rules, and to ensure high validation code reuse rate.
@@ -12,7 +12,7 @@ This library is intended to facilitate the isolation of validation rules, and to
 ### Instalação
 
 ```sh
-$ npm install -save @light/validate
+$ npm install -save light-validate
 $ npm install -save reflect-metadata
 ```
 
@@ -50,7 +50,7 @@ export const RuleLength = function (length: number) {
 import { RuleRequired } from 'some-place';
 import { RuleLength } from 'some-place';
 import { RuleOnlyNumber } from 'some-place';
-import { LightValidate } from '@light/validate';
+import { LightValidate } from 'light-validate';
 
 export class UserLightModelMapping  {
 
@@ -72,7 +72,7 @@ export class UserLightModelMapping  {
 ### Development and Implementation - Validation Call ...
 ```typescript
     import { UserLightModelMapping } from '../some-place';
-    import { RuleErrorInterface, validate } from '@light/validate';
+    import { RuleErrorInterface, validate } from 'light-validate';
 
     const user:UserLightModelMapping = {
         username:'username-value',  

@@ -1,5 +1,5 @@
 {
-  "name": "@light/validate",
+  "name": "light-validate",
   "version": "1.1.2",
   "description": "Validate data based on isolated rules",
   "main": "index.ts",
