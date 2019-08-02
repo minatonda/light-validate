@@ -29,7 +29,6 @@ export const RuleRequired: LightRule = async function (value: any) {
 
 export const RuleOnlyNumber: LightRule = async function (value: string) {
     const error: string[] = [];
-
     if (new RegExp('[^0-9]').test(value)) {
       throw 'input-number-only'; // return an error code or message
     };
@@ -72,7 +71,7 @@ export class UserLightModelMapping  {
 ### Development and Implementation - Validation Call ...
 ```typescript
     import { UserLightModelMapping } from '../some-place';
-    import { RuleErrorInterface, validate } from 'light-validate';
+    import { LightException, lightValidate } from 'light-validate';
 
     const user:UserLightModelMapping = {
         username:'username-value',  
@@ -80,16 +79,16 @@ export class UserLightModelMapping  {
         document:'document-value',
     }
     
-    // will return a Promise <Object Type sent as target>, with values processed through the    ///////// processing function ....
+    // will return a Promise <Object Type sent as target>, with values processed through the processing function ....
     // the promise will be resolved if there is no error 
     // (error vector is zero size, or if vector is undefined)
     // a promise will be rejected, if there are any errors, and as a rejection parameter will be sent 
-    // a vector of // rule-error-interface, check in the domain folder the data definition
+    // a vector of // light-rule interface, check in the domain folder the data definition
     lightValidate(user, UserLightModelMapping)
             .then(() =>{
                 // will fall here if no errors are returned.
             })
-            .catch((errors: RuleErrorInterface[]) => {
+            .catch((errors: LightException[]) => {
                 // will fall here if any errors are returned.
                 console.error(errors);
             });
