@@ -1,3 +1,3 @@
 export interface LightRule {
-    (value: any): Promise<void>;
+    (value: any, target: any): Promise<void>;
 }

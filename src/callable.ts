@@ -1,6 +1,18 @@
-import { LightException } from './common/light-exception.interface';
+import { LightException } from './common/light-exception';
 import * as LightValidateDecorator from './common/light-validate.decorator';
 import * as LightExtendDecorator from './common/light-extend.decorator';
+
+export async function validate(target: any, klass: any, ...properties: string[]) {
+    return lightValidate(target, klass, ...properties);
+}
+
+export async function validateOne(target: any, klass: any, ...properties: string[]) {
+    return lightValidateOne(target, klass, ...properties);
+}
+
+export async function validateEach(target: Array<any>, klass: any, ...properties: string[]) {
+    return lightValidateEach(target, klass, ...properties);
+}
 
 export async function lightValidate(target: any, klass: any, ...properties: string[]) {
     if (target && Array.isArray(target)) {
@@ -57,9 +69,9 @@ export async function exceptionsByLightValidate(target: any, klass: any, ...prop
 
         while (rules.length) {
             const rule = rules.shift();
-            await rule(target[property])
+            await rule(target[property], target)
                 .catch((code: string) => {
-                    const error: LightException = { rule: rule, target: target, property: property, code: code };
+                    const error: LightException = Object.assign(new LightException(), { rule: rule, target: target, property: property, code: code });
                     errors = [...errors, error];
                 });
         }
