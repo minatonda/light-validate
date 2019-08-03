@@ -1,4 +1,4 @@
-import { LightException } from './common/light-exception.interface';
+import { LightException } from './common/light-exception';
 import { LightRule } from './common/light-rule.interface';
 import { LightValidate } from './common/light-validate.decorator';
 import { lightValidate } from './callable';
@@ -6,37 +6,37 @@ import { LightExtend } from './common/light-extend.decorator';
 
 describe('callable', () => {
 
-    const RuleIsBool: LightRule = async function (value) {
+    const RuleIsBool: LightRule = async function (value, target) {
         if (value !== true) {
             throw 'INVALID_IS_NOT_TRUTY';
         };
     }
 
-    const RuleIsNumber: LightRule = async function (value) {
+    const RuleIsNumber: LightRule = async function (value, target) {
         if (typeof value !== 'number') {
             throw 'INVALID_IS_NOT_A_NUMBER';
         };
     }
 
-    const RuleIsString: LightRule = async function (value) {
+    const RuleIsString: LightRule = async function (value, target) {
         if (typeof value !== 'string') {
             throw 'INVALID_IS_NOT_STRING';
         };
     }
 
-    const RuleHaveNumber: LightRule = async function (value: Array<any>) {
+    const RuleHaveNumber: LightRule = async function (value: Array<any>, target) {
         if (!value.some(item => typeof item === 'number')) {
             throw 'INVALID_NOT_HAVE_HUMBER';
         }
     }
 
-    const RuleHaveString: LightRule = async function (value: Array<any>) {
+    const RuleHaveString: LightRule = async function (value: Array<any>, target) {
         if (!value.some(item => typeof item === 'string')) {
             throw 'INVALID_NOT_HAVE_STRING';
         }
     }
 
-    const RuleMaxLenght6: LightRule = async function (value: Array<any>) {
+    const RuleMaxLenght6: LightRule = async function (value: Array<any>, target) {
         if (value.length !== 6) {
             throw 'INVALID_IS_MAX_LENGTH_6';
         };

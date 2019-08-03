@@ -3,13 +3,13 @@
 
 This library is intended to facilitate the isolation of validation rules, and to ensure high validation code reuse rate.
 
-### Objetivos:
+### Targets
   - Create Rules
   - Reuse Rules
   - Ensure uniform code
   - Framework Agnostic (functional api)
 
-### Instalação
+### Install
 
 ```sh
 $ npm install -save light-validate
@@ -18,26 +18,25 @@ $ npm install -save reflect-metadata
 
 ### Development and Implementation - Creating Validation Rules (light-rules) ...
 Define a mapping to the object that will be processed, requiring the class to follow the data model agreement (interface).
-The rule must implement the 'LightRule' interface.
+The rule must implement the 'LightRule' class/interface.
 ```typescript
 import { LightRule } from '@light/rule';
-export const RuleRequired: LightRule = async function (value: any) {
+export const LightRuleRequired: LightRule = async function (value: any) {
     if(!value){
-        throw 'input-required'; // return an error code or message
+        throw 'input-required';
     }
 }
 
-export const RuleOnlyNumber: LightRule = async function (value: string) {
-    const error: string[] = [];
+export const LightRuleNumeric: LightRule = async function (value: string) {
     if (new RegExp('[^0-9]').test(value)) {
-      throw 'input-number-only'; // return an error code or message
+        throw 'input-number-only';
     };
 }
 
-export const RuleLength = function (length: number) {
+export const LightRuleLength = function (length: number) {
     return async function (value: string) {
         if(value.length !== length){
-             throw 'input-lenght'; // return an error code or message
+            throw 'input-lenght';
         }
     } as LightRule;
 }
@@ -46,23 +45,23 @@ export const RuleLength = function (length: number) {
 ### Development and Implementation - Creating Mapping (Classes / Types) ...
 ```typescript
 
-import { RuleRequired } from 'some-place';
-import { RuleLength } from 'some-place';
-import { RuleOnlyNumber } from 'some-place';
+import { LightRuleRequired } from 'some-place';
+import { LightRuleLength } from 'some-place';
+import { LightRuleNumeric } from 'some-place';
 import { LightValidate } from 'light-validate';
 
 export class UserLightModelMapping  {
 
-    // decorator referencing the field to be validated, with the rules to be validated.
-    @LightValidate(RuleRequired, RuleLength(60)) 
+    // decorator with rules as ...parameters
+    @LightValidate(LightRuleRequired, LightRuleLength(60))
     username: string = undefined;
 
-    // decorator referencing the field to be validated, with the rules to be validated.
-    @LightValidate(RuleRequired) //  
+    // decorator with rules as ...parameters
+    @LightValidate(LightRuleRequired) //  
     name: string = undefined;
 
-    // decorator referencing the field to be validated, with the rules to be validated.
-    @LightValidate(RuleRequired, RuleLength(11), RuleOnlyNumber)
+    // decorator with rules as ...parameters
+    @LightValidate(LightRuleRequired, LightRuleLength(11), LightRuleNumeric)
     document: string = undefined;
 
 }
@@ -71,20 +70,15 @@ export class UserLightModelMapping  {
 ### Development and Implementation - Validation Call ...
 ```typescript
     import { UserLightModelMapping } from '../some-place';
-    import { LightException, lightValidate } from 'light-validate';
+    import { LightException, validate } from 'light-validate';
 
     const user:UserLightModelMapping = {
         username:'username-value',  
         password:'name-value', 
         document:'document-value',
     }
-    
-    // will return a Promise <Object Type sent as target>, with values processed through the processing function ....
-    // the promise will be resolved if there is no error 
-    // (error vector is zero size, or if vector is undefined)
-    // a promise will be rejected, if there are any errors, and as a rejection parameter will be sent 
-    // a vector of // light-rule interface, check in the domain folder the data definition
-    lightValidate(user, UserLightModelMapping)
+
+    validate(user, UserLightModelMapping)
             .then(() =>{
                 // will fall here if no errors are returned.
             })

@@ -1,6 +1,6 @@
 import { LightRule } from './light-rule.interface';
 
-export interface LightException {
+export class LightException {
     rule: LightRule;
     target: any;
     property: string;
