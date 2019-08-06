@@ -42,7 +42,23 @@ export const LightRuleLength = function (length: number) {
 }
 ```
 
+Beginning with version 1.0.2, the LightRule interface is given an optional last parameter, which has its value equivalent to the target object to be validated if you need to create a Rule that depends on a second value of the target object.
+```typescript
+import { LightRule } from '@light/rule';
+export const LightRuleMustNotBeSameThan = function (key: string) {
+    return async function (value: string,target:any) {
+        if(value===target[key]){
+            throw 'input-not-be-same-than';
+        }
+    } as LightRule;
+}
+```
+
 ### Development and Implementation - Creating Mapping (Classes / Types) ...
+
+#### Important !!!
+#### All properties will be decorated with decorator validate, must be initialized with 'undefined' in the class definition, otherwise validation will not work.
+
 ```typescript
 
 import { LightRuleRequired } from 'some-place';
@@ -52,17 +68,19 @@ import { LightValidate } from 'light-validate';
 
 export class UserLightModelMapping  {
 
-    // decorator with rules as ...parameters
-    @LightValidate(LightRuleRequired, LightRuleLength(60))
-    username: string = undefined;
 
     // decorator with rules as ...parameters
-    @LightValidate(LightRuleRequired) //  
-    name: string = undefined;
+    @LightValidate(LightRuleRequired, LightRuleLength(20),LightRuleMustNotBeSameThan('name'))
+    username: string = undefined; // all properties decorated with @LightValidate must be initialized with undefined on mapping class, otherwise, validation will not work with the property
+
+
+    // decorator with rules as ...parameters
+    @LightValidate(LightRuleRequired, LightRuleLength(60))  
+    name: string = undefined; // all properties decorated with @LightValidate must be initialized with undefined on mapping class, otherwise, validation will not work with the property
 
     // decorator with rules as ...parameters
     @LightValidate(LightRuleRequired, LightRuleLength(11), LightRuleNumeric)
-    document: string = undefined;
+    document: string = undefined; // all properties decorated with @LightValidate must be initialized with 'undefined' on mapping class, otherwise, validation will not work with the property
 
 }
 ```
