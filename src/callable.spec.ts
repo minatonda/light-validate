@@ -42,34 +42,49 @@ describe('callable', () => {
         };
     }
 
-    class TestModel {
+    const RuleMustNotBeSameThan = function (key: string) {
+        return async function (value: string,target:any) {
+            if(value===target[key]){
+                throw 'input-not-be-same-than';
+            }
+        } as LightRule;
+    }
+
+    class FirstLevelTestMapping {
         @LightValidate(RuleIsBool)
-        var_bool: boolean = undefined;
+        pBoolean: boolean = undefined;
 
         @LightValidate(RuleIsNumber)
-        var_number: number = undefined;
+        pNumeric: number = undefined;
 
         @LightValidate(RuleIsString)
-        var_string: string = undefined;
+        pText: string = undefined;
     }
 
-    class Test2Model {
+    class SecondLevelTestMapping {
         @LightValidate(RuleIsBool)
-        var_bool: boolean = undefined;
+        pBoolean: boolean = undefined;
 
-        @LightExtend(TestModel)
-        var_testModel: TestModel = undefined;
+        @LightExtend(FirstLevelTestMapping)
+        pTest: FirstLevelTestMapping = undefined;
 
     }
 
-    class Test3Model {
+    class ThirdyLevelTestMapping {
         @LightValidate(RuleHaveNumber, RuleHaveString, RuleMaxLenght6)
-        var_array: Array<any> = undefined;
+        pArray: Array<any> = undefined;
+    }
+
+    class UserTestMapping {
+        name:string = undefined;
+
+        @LightValidate(RuleMustNotBeSameThan('name'))
+        username:string = undefined;
     }
 
     it('should throw 3 errors on one item', async () => {
 
-        await lightValidate({}, TestModel)
+        await lightValidate({}, FirstLevelTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(3);
             });
@@ -78,7 +93,7 @@ describe('callable', () => {
 
     it('should throw 2 errors on one item', async () => {
 
-        await lightValidate({ var_bool: true }, TestModel)
+        await lightValidate({ pBoolean: true }, FirstLevelTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(2);
             });
@@ -87,7 +102,7 @@ describe('callable', () => {
 
     it('should throw 1 errors on one item', async () => {
 
-        await lightValidate({ var_bool: true, var_number: 1 }, TestModel)
+        await lightValidate({ pBoolean: true, pNumeric: 1 }, FirstLevelTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(1);
             });
@@ -96,7 +111,7 @@ describe('callable', () => {
 
     it('should throw 0 errors on one item', async () => {
 
-        await lightValidate({ var_bool: true, var_number: 1, var_string: 'shusaihuisa' }, TestModel)
+        await lightValidate({ pBoolean: true, pNumeric: 1, pText: 'shusaihuisa' }, FirstLevelTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(0);
             });
@@ -105,7 +120,7 @@ describe('callable', () => {
 
     it('should throw 1 errors on one item with 3 properties map, but some 1 as specified on LightValidate', async () => {
 
-        await lightValidate({}, TestModel, 'var_number')
+        await lightValidate({}, FirstLevelTestMapping, 'pNumeric')
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(1);
                 // console.log('rejeitada',errors.length)
@@ -115,7 +130,7 @@ describe('callable', () => {
 
     it('should throw 2 errors on one item with 3 properties map, but some 2 as specified on LightValidate', async () => {
 
-        await lightValidate({}, TestModel, 'var_number', 'var_bool')
+        await lightValidate({}, FirstLevelTestMapping, 'pNumeric', 'pBoolean')
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(2);
             });
@@ -124,7 +139,7 @@ describe('callable', () => {
 
     it('should throw 3 errors on array of item', async () => {
 
-        await lightValidate([{}, {}, {}], TestModel)
+        await lightValidate([{}, {}, {}], FirstLevelTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(9);
             });
@@ -134,10 +149,10 @@ describe('callable', () => {
     it('should throw 2 errors on array of item', async () => {
 
         await lightValidate([
-            { var_bool: true },
-            { var_bool: true },
-            { var_bool: true }
-        ], TestModel)
+            { pBoolean: true },
+            { pBoolean: true },
+            { pBoolean: true }
+        ], FirstLevelTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(6);
             });
@@ -147,10 +162,10 @@ describe('callable', () => {
     it('should throw 1 errors on array of item', async () => {
 
         await lightValidate([
-            { var_bool: true, var_number: 1 },
-            { var_bool: true, var_number: 1 },
-            { var_bool: true, var_number: 1 }
-        ], TestModel)
+            { pBoolean: true, pNumeric: 1 },
+            { pBoolean: true, pNumeric: 1 },
+            { pBoolean: true, pNumeric: 1 }
+        ], FirstLevelTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(3);
             });
@@ -160,10 +175,10 @@ describe('callable', () => {
     it('should throw 0 errors on array of item', async () => {
 
         await lightValidate([
-            { var_bool: true, var_number: 1, var_string: 'shusaihuisa' },
-            { var_bool: true, var_number: 1, var_string: 'shusaihuisa' },
-            { var_bool: true, var_number: 1, var_string: 'shusaihuisa' }
-        ], TestModel)
+            { pBoolean: true, pNumeric: 1, pText: 'shusaihuisa' },
+            { pBoolean: true, pNumeric: 1, pText: 'shusaihuisa' },
+            { pBoolean: true, pNumeric: 1, pText: 'shusaihuisa' }
+        ], FirstLevelTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(0);
             });
@@ -172,7 +187,7 @@ describe('callable', () => {
 
     it('should throw 3 errors on array of 3 itens with 3 properties map, but some 1 as specified on LightValidate', async () => {
 
-        await lightValidate([{}, {}, {}], TestModel, 'var_number')
+        await lightValidate([{}, {}, {}], FirstLevelTestMapping, 'pNumeric')
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(3);
             });
@@ -181,7 +196,7 @@ describe('callable', () => {
 
     it('should throw 3 errors on array of 3 itens with 3 properties map, but some 1 as specified on LightValidate', async () => {
 
-        await lightValidate([{}, {}, {}], TestModel, 'var_number', 'var_bool')
+        await lightValidate([{}, {}, {}], FirstLevelTestMapping, 'pNumeric', 'pBoolean')
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(6);
             });
@@ -191,9 +206,9 @@ describe('callable', () => {
     it('should LightValidate property with use decorator and throw 3 errors on second level property', async () => {
 
         await lightValidate({
-            var_bool: true,
-            var_testModel: {}
-        }, Test2Model)
+            pBoolean: true,
+            pTest: {}
+        }, SecondLevelTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(3);
             });
@@ -203,8 +218,8 @@ describe('callable', () => {
     it('should LightValidate property with use decorator and throw 3 errors on second level property and 1 on first level', async () => {
 
         await lightValidate({
-            var_testModel: {}
-        }, Test2Model)
+            pTest: {}
+        }, SecondLevelTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(4);
             });
@@ -213,7 +228,7 @@ describe('callable', () => {
 
     it('should LightValidate property with use decorator and throw 0 errors on second level property and 1 on first level', async () => {
 
-        await lightValidate({}, Test2Model)
+        await lightValidate({}, SecondLevelTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(1);
             });
@@ -223,8 +238,8 @@ describe('callable', () => {
     it('should LightValidate a property with two or more rules and return 3 errors', async () => {
 
         await lightValidate({
-            var_array: []
-        }, Test3Model)
+            pArray: []
+        }, ThirdyLevelTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(3);
             });
@@ -234,8 +249,8 @@ describe('callable', () => {
     it('should LightValidate a property with two or more rules and return 2 errors', async () => {
 
         await lightValidate({
-            var_array: ['a']
-        }, Test3Model)
+            pArray: ['a']
+        }, ThirdyLevelTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(2);
             });
@@ -245,8 +260,8 @@ describe('callable', () => {
     it('should LightValidate a property with two or more rules and return 1 errors', async () => {
 
         await lightValidate({
-            var_array: ['a', 1]
-        }, Test3Model)
+            pArray: ['a', 1]
+        }, ThirdyLevelTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(1);
             });
@@ -256,8 +271,20 @@ describe('callable', () => {
     it('should LightValidate a property with two or more rules and return 0 errors', async () => {
 
         await lightValidate({
-            var_array: ['a', 'b', 'c', 1, 2, 3]
-        }, Test3Model)
+            pArray: ['a', 'b', 'c', 1, 2, 3]
+        }, ThirdyLevelTestMapping)
+            .catch((errors: LightException[]) => {
+                expect(errors.length).toBe(1);
+            });
+
+    });
+
+    it('should LightValidate a rule that uses the target parameter and return 1 errors', async () => {
+
+        await lightValidate({
+            name:'minatonda',
+            username:'minatonda'
+        }, UserTestMapping)
             .catch((errors: LightException[]) => {
                 expect(errors.length).toBe(1);
             });

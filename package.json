@@ -1,6 +1,6 @@
 {
   "name": "light-validate",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Validate data based on isolated rules",
   "main": "index.ts",
   "scripts": {
