@@ -1,6 +1,6 @@
 {
   "name": "light-validate",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Validate data based on isolated rules",
   "main": "index.ts",
   "scripts": {
@@ -33,10 +33,10 @@
   "author": "minatonda",
   "license": "ISC",
   "dependencies": {
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "~0.1.13"
   },
   "peerDependencies": {
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "~0.1.13"
   },
   "devDependencies": {
     "copyfiles": "2.1.0",
