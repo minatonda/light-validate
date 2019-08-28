@@ -105,3 +105,19 @@ export class UserLightModelMapping  {
                 console.error(errors);
             });
 ```
+
+# UI libraries for light-validate
+
+## Angular: 
+
+### [light-validate-angular-ui](https://www.npmjs.com/package/light-validate-angular-ui)
+    
+
+## Vue
+Comming soon...
+
+## React
+Comming soon...
+
+## Svelte
+Comming soon...
