@@ -20,7 +20,7 @@ $ npm install -save reflect-metadata
 Define a mapping to the object that will be processed, requiring the class to follow the data model agreement (interface).
 The rule must implement the 'LightRule' class/interface.
 ```typescript
-import { LightRule } from '@light/rule';
+import { LightRule } from 'light-validate';
 export const LightRuleRequired: LightRule = async function (value: any) {
     if(!value){
         throw 'input-required';
@@ -44,7 +44,7 @@ export const LightRuleLength = function (length: number) {
 
 Beginning with version 1.0.2, the LightRule interface is given an optional last parameter, which has its value equivalent to the target object to be validated if you need to create a Rule that depends on a second value of the target object.
 ```typescript
-import { LightRule } from '@light/rule';
+import { LightRule } from 'light-validate';
 export const LightRuleMustNotBeSameThan = function (key: string) {
     return async function (value: string,target:any) {
         if(value===target[key]){
@@ -61,9 +61,9 @@ export const LightRuleMustNotBeSameThan = function (key: string) {
 
 ```typescript
 
-import { LightRuleRequired } from 'some-place';
-import { LightRuleLength } from 'some-place';
-import { LightRuleNumeric } from 'some-place';
+import { LightRuleRequired } from './some-file';
+import { LightRuleLength } from './some-file';
+import { LightRuleNumeric } from './some-file';
 import { LightValidate } from 'light-validate';
 
 export class UserLightModelMapping  {
@@ -87,7 +87,7 @@ export class UserLightModelMapping  {
 
 ### Development and Implementation - Validation Call ...
 ```typescript
-    import { UserLightModelMapping } from '../some-place';
+    import { UserLightModelMapping } from '../some-file';
     import { LightException, validate } from 'light-validate';
 
     const user:UserLightModelMapping = {
@@ -111,10 +111,9 @@ export class UserLightModelMapping  {
 ## Angular: 
 
 ### [light-validate-angular-ui](https://www.npmjs.com/package/light-validate-angular-ui)
-    
 
 ## Vue
-Comming soon...
+### [light-validate-angular-ui](https://www.npmjs.com/package/light-validate)
 
 ## React
 Comming soon...

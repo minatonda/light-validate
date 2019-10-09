@@ -1,6 +1,6 @@
 {
   "name": "light-validate",
-  "version": "1.0.4",
+  "version": "1.0.6",
   "description": "Validate data based on isolated rules",
   "main": "index.ts",
   "scripts": {
@@ -39,10 +39,10 @@
     "reflect-metadata": "~0.1.13"
   },
   "devDependencies": {
-    "copyfiles": "2.1.0",
     "@types/jest": "24.0.11",
     "@types/node": "11.13.7",
     "@types/reflect-metadata": "0.1.0",
+    "copyfiles": "2.1.0",
     "jest": "24.7.1",
     "rimraf": "2.6.3",
     "ts-jest": "24.0.2",
