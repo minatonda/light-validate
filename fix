@@ -1,0 +1,698 @@
+=================================================== data-selector.component.ts
+import { OnInit, Input, Output, EventEmitter, Component, ChangeDetectorRef, ViewChildren, QueryList, ElementRef, SimpleChanges, forwardRef } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { highlight, filter } from './data-selector.utils';
+
+export interface Environment {
+  id: string;
+  name: string;
+}
+
+@Component({
+  selector: 'data-selector',
+  templateUrl: './data-selector.component.html',
+  styleUrls: ['./data-selector.component.scss'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => DataSelectorComponent),
+      multi: true
+    }
+  ]
+})
+export class DataSelectorComponent<T> implements OnInit, ControlValueAccessor {
+
+  @Input('itens')
+  public _itens: T[] = [];
+
+  @Input('label')
+  public _label: ((item: T, onInput: boolean) => string) | string;
+
+  @Input('placeholder')
+  public _placeholder: string = '';
+
+  @Input('per-page')
+  public _perPage: number = 5;
+
+  @Input('unselect')
+  public _unselect: boolean = true;
+
+  @Input('filter')
+  public _filter: boolean = true;
+
+  @Input('disabled')
+  public _disabled: boolean = false;
+
+  @Input('model-property')
+  public _modelProperty: string = undefined;
+
+  @Output('on-select')
+  public _onSelect: EventEmitter<T> = new EventEmitter();
+
+  @Output('ngModelChange')
+  public _ngModelChange = new EventEmitter();
+
+  @ViewChildren('itemli')
+  public _li: QueryList<ElementRef>;
+
+  public text: string = undefined;
+  public selected: T = undefined;
+  public pointed: T = undefined;
+  public opened: boolean = false;
+  public height: number = 0;
+
+  constructor(
+    private cdRef: ChangeDetectorRef
+  ) {
+
+  }
+
+  public ngOnInit() {
+
+  }
+
+  public ngOnChanges(changes: SimpleChanges) {
+    if (changes['_itens']) {
+      if (this.isOpened()) {
+        this.open();
+      }
+    }
+  }
+
+  public onModelChange: Function = () => { };
+
+  public onModelTouched: Function = () => { };
+
+  public writeValue(model: T): void {
+    if (!model) return;
+    const _model = this._modelProperty ? this._itens.find(i => i[this._modelProperty] === model) : model;
+    this.setSelected(_model);
+  }
+
+  public registerOnChange(fn: Function): void {
+    this.onModelChange = fn;
+  }
+
+  public registerOnTouched(fn: Function): void {
+    this.onModelTouched = fn;
+  }
+
+  public setText(text: string) {
+    this.text = text;
+  }
+
+  public setSelected(item: T, process: boolean = true) {
+    this.selected = item;
+    if (process) {
+      const model = this._modelProperty ? (item ? item[this._modelProperty] : undefined) : item;
+      this._onSelect.emit(model);
+      this._ngModelChange.emit(model);
+      setImmediate(() => {
+        this.setText(this.getLabel(item, true));
+        this.cdRef.detectChanges();
+      });
+    }
+  }
+
+  public isSelected(item: T = this.selected) {
+    return !!this.selected && this.selected === item;
+  }
+
+  public getLabel = (item: T, onInput: boolean = false) => {
+    if (!item) {
+      return '';
+    }
+    if (!this._label) {
+      return JSON.stringify(item);
+    }
+    if (typeof this._label === 'string') {
+      return item[this._label];
+    }
+    return this._label(item, onInput);
+  }
+
+  public getHighlighted = (item: T, text: string) => {
+    return highlight(this.getLabel(item), text);
+  }
+
+  public getItens(text: string, itens: T[] = this._itens, label: ((item: T, onInput: boolean) => string) | string = this.getLabel) {
+    return this._filter ? filter(text, itens, this.getLabel) : itens;
+  }
+
+  public getHeight(count: number) {
+    if (!this._li || !this._li.first) {
+      return 0;
+    }
+    const first = this._li.first.nativeElement as HTMLElement;
+    if (this._itens.length > 0 && this._itens.length < count) {
+      return first.offsetHeight * this._itens.length;
+    } else {
+      return first.offsetHeight * count;
+    }
+  }
+
+  public getClass(item: T) {
+    return {
+      // tslint:disable-next-line: object-literal-key-quotes
+      'active': item === this.pointed,
+      'list-group-item': true,
+      'list-group-item-action': true,
+      'list-group-item-primary': item === this.selected
+    };
+  }
+
+  public open() {
+    this.opened = true;
+    this.height = this.getHeight(this._perPage);
+    this.cdRef.detectChanges();
+  }
+
+  public close() {
+    this.opened = false;
+    this.height = 0;
+    this.cdRef.detectChanges();
+  }
+
+  public isOpened() {
+    return this.opened;
+  }
+
+}
+
+=================================================== data-selector.component.ts end
+=================================================== data-selector.component.html
+<input class="form-control w-100" [(ngModel)]="text" [placeholder]="_placeholder" (focus)="open()"
+  (focusout)="close()" [disabled]="_disabled">
+<i class="fas fa-times" *ngIf="_unselect" [hidden]="!isSelected()" (click)="setSelected(undefined,true)"></i>
+<ul class="card list-group d-block" [hidden]="!isOpened()" [ngStyle]="{'height': height+'px' }">
+  <ng-container *ngFor="let item of getItens(text)">
+    <li #itemli [ngClass]="getClass(item)" (mousedown)="setSelected(item,true);close()"
+      [innerHtml]="getHighlighted(item,text)"></li>
+  </ng-container>
+</ul>
+=================================================== data-selector.component.html end
+=================================================== data-selector.component.scss
+:host {
+
+  position: relative;
+  display: block;
+
+  i {
+    position: absolute;
+    margin: 0 auto;
+    right: 0;
+    top: 8px;
+    right: 8px;
+    font-size: 0.8em;
+
+    &.fa-times {
+      cursor: pointer;
+    }
+  }
+
+  .card.list-group {
+    position: absolute;
+    right: 0;
+    left: 0;
+    z-index: 1;
+    overflow-y: scroll;
+
+    &.closed {
+      display: none;
+    }
+
+  }
+
+}
+=================================================== data-selector.component.scss end
+=================================================== data-selector.utils.ts
+export function filter(text: string = '', itens: Array<any>, label: (item) => string) {
+  const textClean = clean(text);
+  if (itens && text) {
+    return sortByInputFirst(
+      textClean,
+      itens
+        .filter(item => clean(label(item)).indexOf(textClean) > -1)
+        .sort((before, after) => clean(label(before)).indexOf(textClean) - clean(label(after)).indexOf(textClean)),
+      label
+    );
+  } else {
+    return itens;
+  }
+}
+
+export function sortByInputFirst(text: string, itens: Array<any>, label: (item) => string) {
+  const first = [];
+  const others = [];
+
+  const textClean = clean(text);
+  itens.forEach((item, i) => {
+    const labelClean = clean(label(item));
+    labelClean.indexOf(textClean) === 0 ? first.push(item) : others.push(item);
+  });
+  return [...first, ...others];
+}
+
+export function clean(text: string) {
+  return cleanAccents(text).toLocaleLowerCase().trim();
+}
+
+export function cleanAccents(text: string = '') {
+  const accentsMap = [{
+    'Ã': 'A',
+    'Â': 'A',
+    'Á': 'A',
+    'ã': 'a',
+    'â': 'a',
+    'á': 'a',
+    'à': 'a',
+    'É': 'E',
+    'Ê': 'E',
+    'È': 'E',
+    'é': 'e',
+    'ê': 'e',
+    'è': 'e',
+    'Í': 'I',
+    'Î': 'I',
+    'Ì': 'I',
+    'î': 'I',
+    'í': 'i',
+    'ì': 'i',
+    'Ô': 'O',
+    'Õ': 'O',
+    'Ó': 'O',
+    'Ò': 'O',
+    'ô': 'o',
+    'õ': 'o',
+    'ó': 'o',
+    'ò': 'o',
+    'Ú': 'U',
+    'Ù': 'U',
+    'ú': 'u',
+    'ù': 'u',
+    'ç': 'c'
+  }
+  ];
+  return text.replace(/[^A-Za-z0-9\[\] ]/g, (char) => {
+    return accentsMap[char] || char;
+  });
+}
+
+export function cleanTags(text: string = '') {
+  return text.replace(/<\/?[^>]+(>|$)/g, '');
+}
+
+export function highlight(label: string = '', text: string = '', subStringStart: number = 0) {
+
+  const labelClean = clean(label);
+  const queryClean = clean(text);
+
+  if (labelClean.substring(subStringStart).indexOf(queryClean) < 0) {
+    return label;
+  } else {
+    const start = labelClean.substring(subStringStart).indexOf(queryClean) + (subStringStart || 0);
+    const end = start + queryClean.length;
+
+    if (isInsideTag(labelClean, end) !== undefined) {
+      return highlight(label, text, isInsideTag(labelClean, end));
+    } else {
+      const highlighted = '<b>' + label.substring(start, end) + '</b>';
+      return label.substring(0, start) + highlighted + label.substring(end);
+    }
+  }
+}
+
+export function isInsideTag(text: string, start: number) {
+  let tagEnd: number;
+  let count = start;
+  while (count <= text.length) {
+    let char = text[count];
+    if (char === '<') {
+      break;
+    } else if (char === '>') {
+      tagEnd = count;
+      break;
+    }
+    count++;
+  }
+  return tagEnd;
+}
+=================================================== data-selector.utils.ts end
+=================================================== data-datepicker.component.ts
+import { ChangeDetectorRef, Component, ElementRef, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Moment } from 'moment';
+import { moment } from '../ui-spa.namespaces';
+import { getDateByText, getDateMonthStart, getDates, getDateWeekStart, getWeekDays, getWeekDaysShort, isDateEquals } from './date-picker.utils';
+
+
+@Component({
+  selector: 'data-picker',
+  templateUrl: './date-picker.component.html',
+  styleUrls: ['./date-picker.component.scss']
+})
+export class DatePickerComponent<T> implements OnInit, OnChanges {
+
+  public show: Moment = moment();
+  public dates: Moment[][] = [];
+
+  public date: Moment = undefined;
+  public text: string = '';
+
+  public opened: boolean = false;
+  public prevented: boolean = false;
+
+  @ViewChild('inputtext', undefined)
+  public inputtext: ElementRef;
+  @ViewChild('calendar', undefined)
+  public calendar: ElementRef;
+
+  @Input('format')
+  public format: string = 'DD/MM/YYYY';
+
+  @Input('placeholder')
+  public placeholder: string = '';
+
+  @Output('on-select')
+  public outputOnSelect: EventEmitter<Date> = new EventEmitter();
+
+  constructor(
+    private cdRef: ChangeDetectorRef
+  ) { }
+
+  public ngOnChanges(changes: SimpleChanges): void {
+
+  }
+  public ngOnInit(): void {
+    this.setDates(this.show);
+  }
+
+  public setYear(value: number) {
+    this.show.year(value);
+    this.setDates(this.show);
+  }
+
+  public setMonth(value: number) {
+    this.show.month(value);
+    this.setDates(this.show);
+  }
+
+  public setText(text: string) {
+    this.text = text;
+  }
+
+  public getDates(weekDay: number) {
+    return this.dates[weekDay];
+  }
+
+
+  public setDates(date: Moment) {
+    const monthStart = getDateMonthStart(date);
+    const weekStart = getDateWeekStart(monthStart);
+    this.dates = getWeekDays().map(weekday => getDates(weekStart, undefined, weekday));
+  }
+
+  public setDate(date: Moment, updateText: boolean = true) {
+    this.date = date;
+    this.show = moment(date ? date : undefined);
+    updateText && this.setText(date ? date.format(this.format) : '');
+    this.outputOnSelect.emit(date ? date.toDate() : undefined);
+    this.setDates(this.show);
+  }
+
+  public focusIn(element) {
+    this.inputtext.nativeElement.focus();
+  }
+
+  public focusOut($event: FocusEvent) {
+    if (this.calendar.nativeElement.contains($event.relatedTarget)) {
+      $event.preventDefault();
+      this.focusIn(this.inputtext);
+    } else {
+      this.setDate(getDateByText(this.text, this.format), true);
+      this.close();
+    }
+  }
+
+  public open() {
+    this.opened = true;
+  }
+
+  public close(force: boolean = false) {
+    this.opened = false;
+  }
+
+  public isSelected(date: Moment = this.date) {
+    return this.date && isDateEquals(date, this.date);
+  }
+
+  public prevent(value: boolean) {
+    this.prevented = value;
+  }
+
+  public isOpened() {
+    return this.opened;
+  }
+
+  public getDateClass(date: Moment) {
+    return {
+      'p-1': true,
+      'text-center': true,
+      'date': true,
+      'bg-light today': isDateEquals(date) && !this.isSelected(date),
+      'bg-primary': this.isSelected(date),
+      'text-light': this.isSelected(date),
+      'another-month': !isDateEquals(date, this.show, ['month'])
+    }
+  }
+
+  public getWeekDays = getWeekDays;
+
+  public getWeekDaysShort = getWeekDaysShort;
+
+  public getDateWeekStart = getDateWeekStart;
+
+  public getDateMonthStart = getDateMonthStart;
+
+  public getDateByText = getDateByText;
+
+}
+=================================================== data-datepicker.component.ts end
+=================================================== data-datepicker.component.html
+<input #inputtext class="form-control " [(ngModel)]="text" [placeholder]="placeholder"
+  (keyup)="setDate(getDateByText(text),false)" (focus)="open()" (focusout)="focusOut($event)">
+<i class="fas fa-times" [hidden]="!isSelected()" (mousedown)="setDate(undefined)"></i>
+<div #calendar class="card w-100" [hidden]="!isOpened()" tabindex="-1">
+  <div class=" card-header">
+    <ul class="nav nav-pills card-header-pills d-flex justify-content-between" tabindex="-1">
+      <li class="nav-item d-flex">
+        <span class="nav-link" (click)="setMonth(show.month()-1)">
+          <<</span> <span class="nav-link">{{show.format('MMMM')}}
+        </span>
+        <span class="nav-link" (click)="setMonth(show.month()+1)">>></span>
+      </li>
+      <li class="nav-item">
+      </li>
+      <li class="nav-item d-flex d-flex">
+        <span class="nav-link" (click)="setYear(show.year()-1)">
+          <<</span> <span class="nav-link">{{show.format('YYYY')}}
+        </span>
+        <span class="nav-link" (click)="setYear(show.year()+1)">>></span>
+      </li>
+    </ul>
+  </div>
+  <div class="card-body p-0 pt-1 pb-2" tabindex="-1">
+    <div class="d-flex justify-content-start" tabindex="-1">
+      <ng-container *ngFor="let weekDay of getWeekDays()">
+        <div class="flex-fill" tabindex="-1">
+          <div class="p-1 text-center">
+            <b>{{getWeekDaysShort()[weekDay]}}</b>
+          </div>
+          <ng-container *ngFor="let date of getDates(weekDay)">
+            <div class="p-1 text-center date" [ngClass]="getDateClass(date)" (click)="setDate(date)" (dblclick)="close()">
+              {{date.format('DD')}}
+            </div>
+          </ng-container>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+=================================================== data-datepicker.component.html end
+=================================================== data-datepicker.component.scss 
+:host {
+
+  position: relative;
+  display: block;
+
+
+  i {
+    position: absolute;
+    margin: 0 auto;
+    right: 0;
+    top: 8px;
+    right: 8px;
+    font-size: 0.8em;
+
+    &.fa-times {
+      cursor: pointer;
+    }
+  }
+
+  .nav-link {
+    cursor: pointer;
+  }
+
+  .date {
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.1);
+    }
+
+    &.today {
+      font-weight: bold;
+    }
+
+    &.another-month {
+      opacity: 0.4;
+    }
+  }
+
+  .card {
+    position: absolute;
+    z-index: 1;
+    font-size: small;
+  }
+
+  .card *:focus {
+    outline: none;
+  }
+
+}
+=================================================== data-datepicker.component.scss end
+=================================================== data-datepicker.util.ts
+import { Moment } from 'moment';
+import { moment } from '../ui-spa.namespaces';
+
+export function getWeekDaysShort() {
+  return moment.weekdaysShort();
+}
+
+export function getWeekDays() {
+  return [0, 1, 2, 3, 4, 5, 6];
+}
+
+export function getDateByText(text: string, format?: string) {
+  const date = moment(text, format);
+  return date.isValid() ? date : undefined;
+}
+
+export function isDateEquals(date: Moment, dateTwo: Moment = moment(), compare: string[] = ['date', 'month', 'year']) {
+  return !compare.some(prop => date && (date[prop]() !== dateTwo[prop]()));
+}
+
+export function getDateWeekStart(start: Moment = moment(), weeks: number = -1) {
+  const date = moment(start);
+  while (weeks !== 0) {
+    while (date.weekday() !== 0) {
+      date.add(-1, 'day');
+    }
+    weeks < 0 ? weeks++ : weeks--;
+  }
+  return date;
+}
+
+export function getDateMonthStart(start: Moment = moment()) {
+  const date = moment(start);
+  date.date(1);
+  return date;
+}
+
+export function getDates(start: Moment = moment(), days: number = 35, weekDay: number = undefined) {
+  const date = moment(start);
+  const dates = new Array<Moment>();
+  for (let x = 1; x <= days; x++) {
+    if (weekDay !== undefined && date.weekday() === weekDay) {
+      dates.push(moment(date));
+    } else if (weekDay === undefined) {
+      dates.push(moment(date));
+    }
+    date.add(1, 'day');
+  }
+  return dates;
+}
+=================================================== data-datepicker.util.ts end
+=================================================== dropdown-list.component.ts
+import { Component, Input, ViewChild } from '@angular/core';
+import { DataCompress } from '../data-compress/data-compress';
+import { DropdownListItem } from './dropdown-list-item';
+
+@Component({
+  selector: '[dropdown-list]',
+  templateUrl: './dropdown-list.component.html',
+  styleUrls: ['./dropdown-list.scss']
+})
+export class DropdownListComponent {
+
+  @Input()
+  public itens: DropdownListItem[];
+
+  @ViewChild("dropdownEl", undefined)
+  public dropdownEl;
+
+  private dataCompress: DataCompress;
+  public compress: () => void;
+  public uncompress: () => void;
+  public toggleCompress: () => void;
+  public isCompressed: () => boolean;
+
+  @Input('left-to-right')
+  public leftToRight: boolean = false;
+
+  constructor() {
+    this.dataCompress = new DataCompress();
+    this.compress = this.dataCompress.compress;
+    this.uncompress = this.dataCompress.uncompress;
+    this.toggleCompress = this.dataCompress.toggleCompress;
+    this.isCompressed = this.dataCompress.isCompressed;
+    this.compress();
+  }
+
+  public onFocusOut() {
+
+  }
+
+  public onClick(item: DropdownListItem) {
+    if (this.isEnabled(item)) {
+      item.onClick(item);
+    }
+  }
+
+  public isEnabled(item: DropdownListItem) {
+    return item.isEnabled ? item.isEnabled() : true;
+  }
+
+
+
+}
+=================================================== dropdown-list.component.ts end
+=================================================== dropdown-list-item.ts
+export class DropdownListItem {
+  title: string;
+  icon: string;
+  onClick: (...params: any[]) => void;
+  isEnabled?: (...params: any[]) => boolean;
+}
+=================================================== dropdown-list-item.ts end
+=================================================== dropdown-list.component.scss
+.dropdown-list {
+  position: absolute;
+  right: 0;
+
+  &.dropdown-list-visible {
+    z-index: 1;
+  }
+
+  &.dropdown-list-invisible {
+    display: none;
+  }
+
+}
+=================================================== dropdown-list.component.scss end
